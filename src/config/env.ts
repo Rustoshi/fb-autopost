@@ -44,7 +44,7 @@ function getEnvNumber(key: string, defaultValue: number): number {
 export const env: EnvConfig = {
     mongodbUri: getEnvVar('MONGODB_URI'),
     groqApiKey: getEnvVar('GROQ_API_KEY'),
-    groqModel: getEnvVar('GROQ_MODEL', 'llama-3.1-70b-versatile'),
+    groqModel: getEnvVar('GROQ_MODEL', 'llama-3.3-70b-versatile'),
     facebookPageAccessToken: getEnvVar('FACEBOOK_PAGE_ACCESS_TOKEN'),
     facebookPageId: getEnvVar('FACEBOOK_PAGE_ID'),
     postsPerDay: getEnvNumber('POSTS_PER_DAY', 3),
