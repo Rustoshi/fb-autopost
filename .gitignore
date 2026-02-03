@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+output/images/*.png
+*.log
+.DS_Store

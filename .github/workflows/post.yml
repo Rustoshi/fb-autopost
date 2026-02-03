@@ -1,0 +1,43 @@
+name: Scheduled Quote Post
+
+on:
+  schedule:
+    # Runs every 2 hours
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  post-quote:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create output directory
+        run: mkdir -p output/images
+
+      - name: Run bot
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: llama-3.3-70b-versatile
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          POSTS_PER_DAY: 1
+          MIN_DELAY_MINUTES: 0
+          MAX_DELAY_MINUTES: 0
+          NODE_ENV: production
+          LOG_LEVEL: info
+          IMAGE_OUTPUT_DIR: ./output/images
+          BACKGROUND_DIR: ./assets/backgrounds
+        run: npx ts-node src/index.ts

@@ -1,0 +1,66 @@
+name: Facebook Auto Post
+
+on:
+  # Run on a schedule (3 times per day)
+  schedule:
+    - cron: '0 8 * * *'   # 8:00 AM UTC
+    - cron: '0 14 * * *'  # 2:00 PM UTC
+    - cron: '0 20 * * *'  # 8:00 PM UTC
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  post-quote:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install system dependencies for Canvas
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libcairo2-dev \
+            libpango1.0-dev \
+            libjpeg-dev \
+            libgif-dev \
+            librsvg2-dev \
+            pkg-config
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Create output directory
+        run: mkdir -p output/images
+
+      - name: Run quote posting job
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          POSTS_PER_DAY: 1
+          NODE_ENV: production
+          LOG_LEVEL: info
+          IMAGE_OUTPUT_DIR: ./output/images
+        run: node dist/jobs/createPost.js
+
+      - name: Upload generated images as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quote-images-${{ github.run_number }}
+          path: output/images/*.png
+          retention-days: 7
