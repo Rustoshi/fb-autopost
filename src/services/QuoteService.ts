@@ -4,13 +4,21 @@ import { FacebookService } from './FacebookService';
 import { UniquenessService } from './UniquenessService';
 import { PostRepository } from '../repositories/PostRepository';
 import { CategoryRepository } from '../repositories/CategoryRepository';
-import { FigureRepository } from '../repositories/FigureRepository';
 import { logger } from '../utils/logger';
+
+// Brand attributions for quote cards
+const BRAND_ATTRIBUTIONS = [
+    'Anonymous',
+    'Modern Life Notes',
+    'Relationship Truths',
+    'Daily Reminder',
+    'Real Talk'
+];
 
 export interface QuotePostResult {
     quote: string;
     category: string;
-    figure: string;
+    attribution: string;
     imagePath: string;
     facebookPostId: string;
 }
@@ -22,7 +30,6 @@ export class QuoteService {
     private uniquenessService: UniquenessService;
     private postRepository: PostRepository;
     private categoryRepository: CategoryRepository;
-    private figureRepository: FigureRepository;
 
     constructor() {
         this.openRouterService = new OpenRouterService();
@@ -30,7 +37,6 @@ export class QuoteService {
         this.facebookService = new FacebookService();
         this.postRepository = new PostRepository();
         this.categoryRepository = new CategoryRepository();
-        this.figureRepository = new FigureRepository();
         this.uniquenessService = new UniquenessService(this.postRepository);
     }
 
@@ -43,22 +49,20 @@ export class QuoteService {
             logger.info(`Creating post (attempt ${attempt}/${maxAttempts})...`);
 
             try {
-                // Step 1: Select weighted category and random figure
+                // Step 1: Select weighted category and random brand attribution
                 const category = await this.selectWeightedCategory();
-                const figure = await this.figureRepository.getRandom();
+                const attribution = BRAND_ATTRIBUTIONS[Math.floor(Math.random() * BRAND_ATTRIBUTIONS.length)];
 
-                if (!category || !figure) {
-                    throw new Error('Failed to select category or figure');
+                if (!category) {
+                    throw new Error('Failed to select category');
                 }
 
-                logger.info(`Selected category: ${category.name}, figure: ${figure.name}`);
+                logger.info(`Selected category: ${category.name}, attribution: ${attribution}`);
 
                 // Step 2: Generate quote
                 const generated = await this.openRouterService.generateQuoteWithRetry({
                     category: category.name,
                     categoryKeywords: category.keywords,
-                    figureName: figure.name,
-                    figureDescription: figure.description,
                 });
 
                 const { quote, qualityScore, viralityScore, emotion, reason } = generated;
@@ -95,7 +99,6 @@ export class QuoteService {
                     quote,
                     brandName: 'Limitless Mindset',
                     handle: 'limitlessmindset',
-                    profileImageUrl: figure.imageUrl,
                     showVerified: true
                 });
 
@@ -110,7 +113,7 @@ export class QuoteService {
                 await this.postRepository.create({
                     quote,
                     category: category.name,
-                    figure: figure.name,
+                    figure: attribution,
                     imagePath,
                     hash,
                     facebookPostId: postId,
@@ -128,7 +131,7 @@ export class QuoteService {
                 return {
                     quote,
                     category: category.name,
-                    figure: figure.name,
+                    attribution: attribution,
                     imagePath,
                     facebookPostId: postId,
                 };

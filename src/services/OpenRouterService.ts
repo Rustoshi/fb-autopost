@@ -5,8 +5,8 @@ import { logger } from '../utils/logger';
 export interface QuoteGenerationParams {
     category: string;
     categoryKeywords: string[];
-    figureName: string;
-    figureDescription: string;
+    figureName?: string;
+    figureDescription?: string;
 }
 
 export interface GeneratedQuoteResult {
@@ -120,7 +120,7 @@ Tone Examples (Do not copy, just match this vibe):
 
 Context:
 Quote category: ${params.category}
-Inspired by thinking style of: ${params.figureName}
+${params.figureName ? `Inspired by thinking style of: ${params.figureName}` : 'Write in a modern, authentic voice.'}
 But written in modern language.
 
 Tone:
