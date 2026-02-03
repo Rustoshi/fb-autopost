@@ -20,7 +20,7 @@ async function runJob(): Promise<void> {
         logger.info('Post creation job completed successfully!');
         logger.info(`Quote: "${result.quote}"`);
         logger.info(`Category: ${result.category}`);
-        logger.info(`Figure: ${result.figure}`);
+        logger.info(`Attribution: ${result.attribution}`);
         logger.info(`Facebook Post ID: ${result.facebookPostId}`);
         logger.info('========================================');
     } catch (error) {
